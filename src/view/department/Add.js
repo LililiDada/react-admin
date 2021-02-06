@@ -1,8 +1,8 @@
 import React from "react";
 // antd
-import { Form, Input, InputNumber, Button, Radio, message } from "antd";
+import { message } from "antd";
 // API
-import { DepartmentAddApi, Detailed, Edit } from "../../api/department";
+import { Add, Detailed, Edit } from "../../api/department";
 // 组件
 import FromCom from "@c/from/Index";
 class DepartmentAdd extends React.Component {
@@ -10,13 +10,18 @@ class DepartmentAdd extends React.Component {
     super(props);
     this.state = {
       fromLayout: {
-        labelCol: { xs: { span: 24 }, sm: { span: 5 }, lg: { span: 2 } },
+        labelCol: { xs: { span: 24 }, sm: { span: 5 }, lg: { span: 3 } },
         wrapperCol: { xs: { span: 24 }, sm: { span: 18 }, lg: { span: 22 } },
       },
       loading: false,
       id: "",
       fromConfig: {
         url: "departmentAdd",
+        initValue: {
+          number: 0,
+          status: true,
+        },
+        setFieldValue: {},
       },
       fromItem: [
         {
@@ -43,21 +48,16 @@ class DepartmentAdd extends React.Component {
           name: "status",
           required: true,
           options: [
-            { label: "禁用", value: false },
             { label: "启用", value: true },
+            { label: "禁用", value: false },
           ],
         },
         {
-          type: "Select",
-          label: "部门",
-          name: "",
+          type: "TextArea",
+          label: "描述",
+          name: "content",
           required: true,
-          options: [
-            { label: "研发部", value: "a" },
-            { label: "行政部", value: "b" },
-          ],
-          style: { width: "150px" },
-          placeholder: "请选择部门",
+          placeholder: "请输入描述内容",
         },
       ],
     };
@@ -77,31 +77,36 @@ class DepartmentAdd extends React.Component {
       return false;
     }
     Detailed({ id: this.state.id }).then((res) => {
-      console.log(res);
-      this.refs.from.setFieldsValue(res.data.data);
+      // console.log(res);
+      // this.refs.from.setFieldValue(res.data.data);
+      this.setState({
+        fromConfig: {
+          ...this.state.fromConfig,
+          setFieldValue: res.data.data,
+        },
+      });
     });
   };
-  onSubmit = (value) => {
-    console.log(value);
-    return false;
-    if (!value.name) {
-      message.error("部门名称不能为空");
-      return false;
-    }
-    if (!value.number || value.number === 0) {
-      message.error("人员数量不能为0");
-      return false;
-    }
-    if (!value.content) {
-      message.error("部门描述不能为空");
-      return false;
-    }
-    // 确定按钮执行添加或编辑
-    this.state.id ? this.onHandlerEdit(value) : this.onHandlerAdd(value);
-  };
+  // onSubmit = (value) => {
+  //   console.log(value);
+  //   if (!value.name) {
+  //     message.error("部门名称不能为空");
+  //     return false;
+  //   }
+  //   if (!value.number || value.number === 0) {
+  //     message.error("人员数量不能为0");
+  //     return false;
+  //   }
+  //   if (!value.content) {
+  //     message.error("部门描述不能为空");
+  //     return false;
+  //   }
+  //   // 确定按钮执行添加或编辑
+  //   this.state.id ? this.onHandlerEdit(value) : this.onHandlerAdd(value);
+  // };
   /**添加信息 */
   onHandlerAdd = (value) => {
-    DepartmentAddApi(value)
+    Add(value)
       .then((res) => {
         const data = res.data;
         message.info(data.message);
@@ -131,6 +136,10 @@ class DepartmentAdd extends React.Component {
         });
       });
   };
+  // 提交表单
+  onHandlerSubmit = (value) => {
+    this.state.id ? this.onHandlerEdit(value) : this.onHandlerAdd(value);
+  };
   render() {
     return (
       <div>
@@ -138,38 +147,8 @@ class DepartmentAdd extends React.Component {
           fromItem={this.state.fromItem}
           fromLayout={this.state.fromLayout}
           fromConfig={this.state.fromConfig}
+          submit={this.onHandlerSubmit}
         />
-        <Form
-          {...this.state.fromLayout}
-          initialValues={{ status: true, number: 0 }}
-          onFinish={this.onSubmit}
-          ref="from"
-        >
-          <Form.Item label="部门名称" name="name">
-            <Input />
-          </Form.Item>
-          <Form.Item label="人员数量" name="number">
-            <InputNumber min={0} max={100} />
-          </Form.Item>
-          <Form.Item label="禁启用" name="status">
-            <Radio.Group>
-              <Radio value={true}>启用</Radio>
-              <Radio value={false}>禁用</Radio>
-            </Radio.Group>
-          </Form.Item>
-          <Form.Item label="描述" name="content">
-            <Input.TextArea />
-          </Form.Item>
-          <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              loading={this.state.loading}
-            >
-              确定
-            </Button>
-          </Form.Item>
-        </Form>
       </div>
     );
   }

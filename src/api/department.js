@@ -2,7 +2,7 @@ import service from "../../src/utils/request";
 /**
  * 添加
  */
-export function DepartmentAddApi(data) {
+export function Add(data) {
   return service.request({
     url: "/department/add/",
     method: "POST",

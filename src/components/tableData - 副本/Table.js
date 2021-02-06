@@ -3,20 +3,31 @@ import React, { Component, Fragment } from "react";
 import propTypes from "prop-types";
 // antd
 import { Table, Row, Col, Pagination, Button } from "antd";
-import { connect } from "react-redux";
 class TableBasic extends Component {
   render() {
-    const { thead } = this.props.config;
+    const {
+      columns,
+      dataSource,
+      total,
+      changePageCurrent,
+      changePageSize,
+      batchButton,
+      HandlerDelete,
+      rowSelection,
+      rowKey,
+    } = this.props;
     return (
       <Fragment>
-        <div className="spacing-30"></div>
         <Table
-          rowKey={this.props.rowKey}
-          columns={thead}
+          columns={columns}
+          dataSource={dataSource}
+          pagination={false}
+          rowSelection={rowSelection}
           bordered
-          dataSource={this.props.list}
+          rowKey={rowKey}
         ></Table>
-        {/* <Row>
+        <div className="spacing-30"></div>
+        <Row>
           <Col span={8}>
             {batchButton && <Button onClick={HandlerDelete}>批量删除</Button>}
           </Col>
@@ -31,26 +42,29 @@ class TableBasic extends Component {
               showTotal={(total) => `Total ${total} items`}
             />
           </Col>
-        </Row> */}
+        </Row>
       </Fragment>
     );
   }
 }
 // 校验数据类型
 TableBasic.propTypes = {
-  config: propTypes.object,
+  columns: propTypes.array,
+  dataSource: propTypes.array,
+  total: propTypes.number,
+  changePageCurrent: propTypes.func,
+  changePageSize: propTypes.func,
+  batchButton: propTypes.bool,
+  rowSelection: propTypes.object,
   rowKey: propTypes.string,
 };
 // 默认
 TableBasic.defaultProps = {
-  config: {},
+  columns: [],
+  dataSource: [],
+  total: 0,
+  batchButton: true,
   rowKey: "id",
 };
 
-const mapStateToProps = (state) => {
-  return {
-    list: state.department.departmentList,
-  };
-};
-
-export default connect(mapStateToProps, null)(TableBasic);
+export default TableBasic;

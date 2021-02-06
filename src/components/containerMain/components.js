@@ -3,7 +3,7 @@ const files = require.context("../../view/", true, /\.js$/); // 第一个参数�
 // 声明组件对象
 const components = [];
 // 循环文件
-files.keys().map((key) => {
+files.keys().forEach((key) => {
   // 过滤 index、login
   if (key.includes("./index/") || key.includes("./login/")) {
     return false;

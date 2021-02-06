@@ -5,8 +5,7 @@ import { Button, Switch, message } from "antd";
 // api
 import { Status } from "../../api/department";
 // table 组件
-import TableComponent from "@c/tableData/Table";
-import FormSeach from "@c/formSearch/Index";
+import TableComponent from "@c/tableData/Index";
 class DepartmentList extends React.Component {
   constructor(props) {
     super(props);
@@ -21,23 +20,6 @@ class DepartmentList extends React.Component {
       loadingTable: false,
       // id
       id: "",
-      // 搜索
-      formItem: [
-        {
-          type: "Input",
-          label: "部门名称",
-          name: "name",
-          placeholder: "请输入部门名称",
-        },
-        {
-          type: "Select",
-          label: "禁启用",
-          name: "status",
-          placeholder: "请选择",
-          style: { width: "100px" },
-          optionsKey: "status",
-        },
-      ],
       // 表头
       tableConfig: {
         url: "departmentList",
@@ -100,6 +82,14 @@ class DepartmentList extends React.Component {
             },
           },
         ],
+        formItem: [
+          {
+            type: "Input",
+            label: "部门名称",
+            name: "name",
+            placeholder: "请输入部门名称",
+          },
+        ],
       },
 
       // 表的数据
@@ -142,8 +132,10 @@ class DepartmentList extends React.Component {
   render() {
     return (
       <Fragment>
-        <FormSeach formItem={this.state.formItem} />
-        <TableComponent config={this.state.tableConfig} />
+        <TableComponent
+          onRef={this.getChildRef}
+          config={this.state.tableConfig}
+        />
       </Fragment>
     );
   }

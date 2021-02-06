@@ -1,29 +1,41 @@
 import React, { Component } from "react";
+
+// propTypes
+import propTypes from "prop-types";
 // antd
-import { Form, Input, Button, Select, InputNumber, Radio, message } from "antd";
-// api
-import { requestData } from "@api/common";
+import { Form, Input, Button, Select, InputNumber, Radio } from "antd";
+
+// connect
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+// action
+import {
+  addDepartmentList,
+  updateDepartmentList,
+} from "@/store/action/Department";
+// url
 import requestUrl from "@api/requestUrl";
+// api
+import { TableList } from "@api/common";
+
 const { Option } = Select;
-class FromCom extends Component {
+class FormSearch extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      loading: false,
       mesPreix: {
         Input: "请输入",
         Radio: "请选择",
         Select: "请选择",
-        TextArea: "请输入",
       },
-      loading: false,
     };
   }
 
-  componentWillReceiveProps({ fromConfig }) {
-    console.log(fromConfig);
-    // this.refs.form.setFieldValue(fromConfig.setFieldValue);
-    this.refs.form.setFieldsValue(fromConfig.setFieldValue);
+  componentDidMount() {
+    this.onSubmit();
   }
+
   rules = (item) => {
     const { mesPreix } = this.state;
     let rules = [];
@@ -115,7 +127,7 @@ class FromCom extends Component {
           {item.options &&
             item.options.map((elem) => {
               return (
-                <Option value={elem.value} key={item.value}>
+                <Option value={elem.value} key={elem.value}>
                   {elem.label}
                 </Option>
               );
@@ -125,17 +137,18 @@ class FromCom extends Component {
     );
   };
   initFromItem = () => {
-    const { fromItem } = this.props;
+    const { formItem } = this.props;
     // 检测是否存在fromItem
-    if (!fromItem || (fromItem && fromItem.length === 0)) {
+    if (!formItem || (formItem && formItem.length === 0)) {
       return false;
     }
     const fromList = [];
-    fromItem.forEach((item) => {
+    formItem.forEach((item) => {
       if (item.type === "Input") {
         fromList.push(this.inputItem(item));
       }
       if (item.type === "Select") {
+        item.options = this.props.config[item.optionsKey];
         fromList.push(this.selectItem(item));
       }
       if (item.type === "InputNumber") {
@@ -150,49 +163,82 @@ class FromCom extends Component {
     });
     return fromList;
   };
-  onSubmit = (value) => {
-    // 传入的submit
-    if (this.props.submit) {
-      this.props.submit(value);
-      return false;
-    }
-    // this.props.onSubmit(value);
-    const data = {
-      url: requestUrl[this.props.fromConfig.url],
-      data: value,
+  search = (params) => {
+    const requestData = {
+      url: requestUrl[params.url],
+      method: "post",
+      data: {
+        pageNumber: 1,
+        pageSize: 10,
+      },
     };
-    requestData(data)
+    // 拼接搜索参数
+    if (Object.keys(params.searchData).length !== 0) {
+      for (let key in params.searchData) {
+        requestData.data[key] = params.searchData[key];
+      }
+    }
+    TableList(requestData)
       .then((response) => {
-        const responseData = response.data;
-        // 提示
-        message.info(responseData.message);
-        // 取消按钮加载
-        this.setState({
-          loading: false,
-        });
+        const resData = response.data.data;
+        this.props.actions.addData(resData);
       })
-      .catch((error) => {
-        this.setState({
-          loading: false,
-        });
-      });
+      .catch((error) => {});
+  };
+  onSubmit = (value) => {
+    const searchData = {};
+    for (let key in value) {
+      if (value[key] !== undefined && value[key] !== "") {
+        searchData[key] = value[key];
+      }
+    }
+    this.search({
+      url: "departmentList",
+      searchData,
+    });
   };
   render() {
     return (
       <Form
-        initialValues={this.props.fromConfig.initValue}
-        onFinish={this.onSubmit}
+        layout="inline"
         ref="form"
-        {...this.props.fromLayout}
+        onFinish={this.onSubmit}
+        initialValues={this.props.formConfig.initValue}
+        {...this.props.formLayout}
       >
         {this.initFromItem()}
         <Form.Item>
           <Button type="primary" htmlType="submit" loading={this.state.loading}>
-            确定
+            搜索
           </Button>
         </Form.Item>
       </Form>
     );
   }
 }
-export default FromCom;
+
+FormSearch.propTypes = {
+  formConfig: propTypes.object,
+};
+
+FormSearch.defaultProps = {
+  formConfig: {},
+};
+
+const mapStateToProps = (state) => ({
+  config: state.config,
+});
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    // listData: bindActionCreators(addDepartmentList, dispatch),  //单个action做处理
+    actions: bindActionCreators(
+      {
+        addData: addDepartmentList,
+        updataData: updateDepartmentList,
+      },
+      dispatch
+    ),
+  };
+};
+export default connect(mapStateToProps, mapDispatchToProps)(FormSearch);
